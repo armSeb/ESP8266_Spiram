@@ -50,13 +50,19 @@ class ESP8266Spiram
     void setByteMode(void);
     void setPageMode(void);
     void setSeqMode(void);
+    void setCsPin(int csPin);
     uint8_t getMode();
   private:
     void beginTrans_(void);
     void endTrans_(void);
     void writeReg_(uint8_t reg);
+    void readBytes(uint32_t addr, uint8_t *buff, int len);
+    void readSeq(uint32_t addr, uint8_t *buff, int len);
+    void writeBytes(uint32_t addr, uint8_t *buff, int len);
+    void writeSeq(uint32_t addr, uint8_t *buff, int len);
     void reset_();
     int Cs;
+    uint8_t opMode;
     uint8_t readReg_(void);
     uint8_t transfer8(uint8_t data);
   	uint16_t transfer16(uint16_t data);

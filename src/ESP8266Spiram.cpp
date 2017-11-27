@@ -29,33 +29,49 @@ ESP8266Spiram Spiram;
 // setup of C/S line as per HSPI default
 ESP8266Spiram::ESP8266Spiram() {
       Cs=15; // default value
-      SPI.begin();
-      pinMode (Cs, OUTPUT);
-      digitalWrite(Cs, HIGH);
 }
 
 
 // Activate the library setting up ByteMode of operation (see 2.2 pg.5)
 void ESP8266Spiram::begin(void)	{
+
+      SPI.begin();
+      pinMode (Cs, OUTPUT);
+      digitalWrite(Cs, HIGH);
+
       digitalWrite(Cs, HIGH);
       delay(50);
       digitalWrite(Cs, LOW);
       delay(50);
       digitalWrite(Cs, HIGH);
       setByteMode();
-
 }
 
 /***********************************************
- * this function Read SRAM                     * 
+ * this function Read SRAM                     *
  *   - addr: address to start read             *
  *   - *buff: list where read bytes are copied *
  *   - len: amount of bytes to read            *
  * (see sequence in figure 2-1)                *
  ***********************************************/
 
+
 void ESP8266Spiram::read(uint32_t addr, uint8_t *buff, int len) {
-        uint32_t instr; 
+        switch (opMode) {
+            case REG_BM:
+                readBytes(addr, buff, len);
+                break;
+            case REG_SM:
+                readSeq(addr, buff, len);
+                break;
+            default:
+                readBytes(addr, buff, len);
+	}
+}
+
+
+void ESP8266Spiram::readBytes(uint32_t addr, uint8_t *buff, int len) {
+        uint32_t instr;
         int i=0;
         while (len--) {
           instr=(READ<<24)|(addr++&0x00ffffff);
@@ -66,9 +82,21 @@ void ESP8266Spiram::read(uint32_t addr, uint8_t *buff, int len) {
         }
 }
 
+void ESP8266Spiram::readSeq(uint32_t addr, uint8_t *buff, int len) {
+        uint32_t instr;
+        int i=0;
+        instr=(READ<<24)|(addr++&0x00ffffff);
+        beginTrans_();
+        transfer32(instr);   // code to set Read mode in the SRAM
+        while (len--) {
+          buff[i++]=transfer8(0);
+        }
+        endTrans_();
+}
+
 
 /**************************************
- * this function Write in the SRAM    * 
+ * this function Write in the SRAM    *
  *   - addr: address to start write   *
  *   - *buff: list of bytes to write  *
  *   - len: amount of bytes to write  *
@@ -76,6 +104,19 @@ void ESP8266Spiram::read(uint32_t addr, uint8_t *buff, int len) {
  **************************************/
 
 void ESP8266Spiram::write(uint32_t addr, uint8_t *buff, int len) {
+        switch (opMode) {
+            case REG_BM:
+                writeBytes(addr, buff, len);
+                break;
+            case REG_SM:
+                writeSeq(addr, buff, len);
+                break;
+            default:
+                writeBytes(addr, buff, len);
+	}
+}
+
+void ESP8266Spiram::writeBytes(uint32_t addr, uint8_t *buff, int len) {
         uint32_t instr;
         int i=0;
         while (len--) {
@@ -85,6 +126,18 @@ void ESP8266Spiram::write(uint32_t addr, uint8_t *buff, int len) {
           transfer8(buff[i++]);
           endTrans_();
         }
+}
+
+void ESP8266Spiram::writeSeq(uint32_t addr, uint8_t *buff, int len) {
+        uint32_t instr;
+        int i=0;
+        instr=(WRITE<<24)|(addr++&0x00ffffff);
+        beginTrans_();
+        transfer32(instr);   // code to set Read mode in the SRAM
+        while (len--) {
+          transfer8(buff[i++]);
+        }
+        endTrans_();
 }
 
 
@@ -164,17 +217,19 @@ uint32_t ESP8266Spiram::transfer32(uint32_t data){
         return out.val;
 }
 
-
 void ESP8266Spiram::setByteMode(void){
-        writeReg_(REG_BM);
+	writeReg_(REG_BM);
+        opMode = getMode();
 }
 
 void ESP8266Spiram::setPageMode(void){
         writeReg_(REG_PM);
+	opMode = getMode();
 }
 
 void ESP8266Spiram::setSeqMode(void){
         writeReg_(REG_SM);
+        opMode = getMode();
 }
 
 uint8_t ESP8266Spiram::getMode(void){
@@ -191,3 +246,6 @@ void ESP8266Spiram::endTrans_(void){
         SPI.endTransaction();  
 }
 
+void ESP8266Spiram::setCsPin(int csPin) {
+        Cs = csPin;
+}
