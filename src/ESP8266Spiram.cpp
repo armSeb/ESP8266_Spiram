@@ -28,7 +28,7 @@ ESP8266Spiram Spiram;
 
 // setup of C/S line as per HSPI default
 ESP8266Spiram::ESP8266Spiram() {
-      Cs=15; // default values
+      Cs=15; // default value for HSPI port
       clkSpeed=20e6; // The 23LC1024 supports theorically up to 20MHz
 }
 
