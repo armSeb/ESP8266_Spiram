@@ -32,6 +32,10 @@ ESP8266Spiram::ESP8266Spiram() {
       clkSpeed=20e6; // The 23LC1024 supports theorically up to 20MHz
 }
 
+ESP8266Spiram::ESP8266Spiram(int cs, int clockspeedhz) {
+      Cs = cs;
+      clkSpeed = clockspeedhz;
+}
 
 // Activate the library setting up ByteMode of operation (see 2.2 pg.5)
 void ESP8266Spiram::begin(void)	{
@@ -245,12 +249,4 @@ void ESP8266Spiram::beginTrans_(void){
 void ESP8266Spiram::endTrans_(void){
         digitalWrite(Cs, HIGH);
         SPI.endTransaction();  
-}
-
-void ESP8266Spiram::setCsPin(int csPin) {
-        Cs = csPin;
-}
-
-void ESP8266Spiram::setClkSpeed(uint32_t speed) {
-        clkSpeed = speed;
 }

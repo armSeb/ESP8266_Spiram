@@ -44,14 +44,13 @@ class ESP8266Spiram
 {
   public:
     ESP8266Spiram();
+    ESP8266Spiram(int cs, int clockspeedhz);
     void begin(void);
     void write(uint32_t addr, uint8_t *buff, int len);
     void read(uint32_t addr, uint8_t *buff, int len);
     void setByteMode(void);
     void setPageMode(void);
     void setSeqMode(void);
-    void setCsPin(int csPin);
-    void setClkSpeed(uint32_t speed);
     uint8_t getMode();
   private:
     void beginTrans_(void);
