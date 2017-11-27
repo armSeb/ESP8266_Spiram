@@ -51,6 +51,7 @@ class ESP8266Spiram
     void setPageMode(void);
     void setSeqMode(void);
     void setCsPin(int csPin);
+    void setClkSpeed(uint32_t speed);
     uint8_t getMode();
   private:
     void beginTrans_(void);
@@ -62,6 +63,7 @@ class ESP8266Spiram
     void writeSeq(uint32_t addr, uint8_t *buff, int len);
     void reset_();
     int Cs;
+    uint32_t clkSpeed;
     uint8_t opMode;
     uint8_t readReg_(void);
     uint8_t transfer8(uint8_t data);

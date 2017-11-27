@@ -28,7 +28,8 @@ ESP8266Spiram Spiram;
 
 // setup of C/S line as per HSPI default
 ESP8266Spiram::ESP8266Spiram() {
-      Cs=15; // default value
+      Cs=15; // default values
+      clkSpeed=20e6; // The 23LC1024 supports theorically up to 20MHz
 }
 
 
@@ -237,7 +238,7 @@ uint8_t ESP8266Spiram::getMode(void){
 }
 
 void ESP8266Spiram::beginTrans_(void){
-        SPI.beginTransaction(SPISettings(20000000, MSBFIRST, SPI_MODE0));
+        SPI.beginTransaction(SPISettings(clkSpeed, MSBFIRST, SPI_MODE0));
         digitalWrite(Cs, LOW);
 }
 
@@ -248,4 +249,8 @@ void ESP8266Spiram::endTrans_(void){
 
 void ESP8266Spiram::setCsPin(int csPin) {
         Cs = csPin;
+}
+
+void ESP8266Spiram::setClkSpeed(uint32_t speed) {
+        clkSpeed = speed;
 }
